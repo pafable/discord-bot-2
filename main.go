@@ -1,6 +1,7 @@
 package main
 
 import (
+	"discord-bot-2/pkg/discord"
 	"github.com/bwmarrin/discordgo"
 	"log"
 	"os"
@@ -9,23 +10,13 @@ import (
 )
 
 func main() {
+	token := "Bot " + os.Getenv("DISCORD_TOKEN")
+
 	// Creates discord session
-	sess, err := discordgo.New("Bot " + os.Getenv("DISCORD_TOKEN"))
-	if err != nil {
-		log.Fatal(err)
-	}
+	sess, err := discord.Auth(token)
 
 	// processes incoming messages from discord
-	sess.AddHandler(
-		func(s *discordgo.Session, m *discordgo.MessageCreate) {
-			if m.Author.ID == s.State.User.ID {
-				return
-			}
-
-			if m.Content == "hello" {
-				s.ChannelMessageSend(m.ChannelID, "world!")
-			}
-		})
+	discord.HelloWorld(sess)
 
 	sess.Identify.Intents = discordgo.IntentsAllWithoutPrivileged
 
@@ -34,9 +25,14 @@ func main() {
 		log.Fatal(err)
 	}
 
-	defer sess.Close()
+	defer func(sess *discordgo.Session) {
+		err := sess.Close()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}(sess)
 
-	log.Println("The bot is online")
+	log.Println("the bot is online")
 
 	sc := make(chan os.Signal, 1)
 	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt)
