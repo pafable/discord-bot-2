@@ -1,7 +1,7 @@
 package main
 
 import (
-	"discord-bot-2/pkg/discord"
+	"discord-bot-2/cmd/discord"
 	"github.com/bwmarrin/discordgo"
 	"log"
 	"os"
@@ -16,7 +16,7 @@ func main() {
 	sess, err := discord.Auth(token)
 
 	// processes incoming messages from discord
-	discord.HelloWorld(sess)
+	discord.CreateHandler(sess)
 
 	sess.Identify.Intents = discordgo.IntentsAllWithoutPrivileged
 
