@@ -1,0 +1,30 @@
+version: '3'
+
+tasks:
+  build:
+    cmds:
+      - CGO_ENABLED=0 GOOS=linux go build -o discord-bot-2
+
+  image:
+    cmds:
+      - task build
+      - docker build --tag discord-bot-2 .
+
+  run:
+    cmds:
+      - task image
+      - |
+          docker run \
+            --detach \
+            --name discord-bot-2 \
+            --env DISCORD_TOKEN=${DISCORD_TOKEN} \
+            discord-bot-2
+
+  scan:
+    cmds:
+      - trivy image discord-bot-2
+
+  clean:
+    cmds:
+      - docker rm -f discord-bot-2
+      - docker rmi discord-bot-2
