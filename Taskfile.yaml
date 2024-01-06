@@ -12,6 +12,7 @@ tasks:
 
   run:
     cmds:
+      - task clean
       - task image
       - |
           docker run \

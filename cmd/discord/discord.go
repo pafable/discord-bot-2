@@ -35,9 +35,11 @@ func CreateHandler(s *discordgo.Session) {
 
 			args := strings.Split(m.Content, " ")
 
-			log.Println("args:", args)
-
 			if args[0] != prefix {
+				return
+			}
+
+			if len(args) < 2 {
 				return
 			}
 
