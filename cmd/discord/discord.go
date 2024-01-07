@@ -161,7 +161,10 @@ func CreateHandler(s *discordgo.Session) {
 					log.Fatal(err)
 				}
 
-				RollDice(s, m, diceSides)
+				err = RollDice(s, m, diceSides)
+				if err != nil {
+					return
+				}
 			}
 		})
 }
