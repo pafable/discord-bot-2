@@ -7,6 +7,7 @@ tasks:
 
   image:
     cmds:
+      - task clean
       - task build
       - docker build --tag discord-bot-2 .
 
@@ -29,3 +30,4 @@ tasks:
     cmds:
       - docker rm -f discord-bot-2
       - docker rmi discord-bot-2
+    ignore_error: true
