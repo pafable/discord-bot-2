@@ -1,8 +1,11 @@
 package discord
 
 import (
+	"fmt"
 	"github.com/bwmarrin/discordgo"
 	"log"
+	"math/rand"
+	"strconv"
 	"strings"
 )
 
@@ -26,10 +29,16 @@ type Answers struct {
 	OriginChannelId string
 	FavFood         string
 	FavGame         string
+	User            string
 }
 
 func (a *Answers) ToMessageEmbed() discordgo.MessageEmbed {
 	fields := []*discordgo.MessageEmbedField{
+
+		{
+			Name:  "User",
+			Value: a.User,
+		},
 		{
 			Name:  "Favorite food",
 			Value: a.FavFood,
@@ -70,6 +79,28 @@ func UserPromptHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 	}
 }
 
+func HelloWorldHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
+	log.Println("sending \"world\" message to server")
+	_, err := s.ChannelMessageSend(m.ChannelID, "world!")
+
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
+func RollDice(s *discordgo.Session, m *discordgo.MessageCreate, numSides int) error {
+	diceResult := rand.Intn(numSides)
+
+	msg := fmt.Sprintf("rolled a %d sided dice and got %d", numSides, diceResult+1)
+	_, err := s.ChannelMessageSend(m.ChannelID, msg)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // CreateHandler prints "world!" if anyone types "hello" into chat
 func CreateHandler(s *discordgo.Session) {
 	s.AddHandler(
@@ -89,10 +120,12 @@ func CreateHandler(s *discordgo.Session) {
 
 				if answers.FavFood == "" {
 					answers.FavFood = m.Content
+					answers.User = m.Author.Username
 					s.ChannelMessageSend(m.ChannelID, "Great! What's your favorite game now?")
 
 					responses[m.ChannelID] = answers
 					return
+
 				} else {
 					answers.FavGame = m.Content
 					embed := answers.ToMessageEmbed()
@@ -114,16 +147,21 @@ func CreateHandler(s *discordgo.Session) {
 			}
 
 			if args[1] == strings.ToUpper(word) || args[1] == word {
-				log.Println("sending message to server")
-				_, err := s.ChannelMessageSend(m.ChannelID, "world!")
-
-				if err != nil {
-					log.Fatal(err)
-				}
+				HelloWorldHandler(s, m)
 			}
 
 			if args[1] == "prompt" {
 				UserPromptHandler(s, m)
+			}
+
+			if args[1] == "roll" {
+				diceSides, err := strconv.Atoi(args[2])
+
+				if err != nil {
+					log.Fatal(err)
+				}
+
+				RollDice(s, m, diceSides)
 			}
 		})
 }
