@@ -20,7 +20,54 @@ func Auth(token string) (*discordgo.Session, error) {
 	}
 
 	return sess, nil
+}
 
+type Answers struct {
+	OriginChannelId string
+	FavFood         string
+	FavGame         string
+}
+
+func (a *Answers) ToMessageEmbed() discordgo.MessageEmbed {
+	fields := []*discordgo.MessageEmbedField{
+		{
+			Name:  "Favorite food",
+			Value: a.FavFood,
+		},
+		{
+			Name:  "Favorite game",
+			Value: a.FavGame,
+		},
+	}
+
+	return discordgo.MessageEmbed{
+		Title:  "New responses!",
+		Fields: fields,
+	}
+}
+
+var responses map[string]Answers = map[string]Answers{}
+
+// UserPromptHandler creates user channel in discord
+func UserPromptHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
+	channel, err := s.UserChannelCreate(m.Author.ID)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// if the user is already answers question, ignore it, otherwise ask questions
+	if _, ok := responses[channel.ID]; !ok {
+		responses[channel.ID] = Answers{
+			OriginChannelId: m.ChannelID,
+			FavFood:         "",
+			FavGame:         "",
+		}
+		s.ChannelMessageSend(channel.ID, "Hey there! Here are some questions")
+		s.ChannelMessageSend(channel.ID, "What's your favorite food?")
+	} else {
+		s.ChannelMessageSend(channel.ID, "We're still waiting... :)")
+	}
 }
 
 // CreateHandler prints "world!" if anyone types "hello" into chat
@@ -33,6 +80,29 @@ func CreateHandler(s *discordgo.Session) {
 				return
 			}
 
+			// DM logic
+			if m.GuildID == "" {
+				answers, ok := responses[m.ChannelID]
+				if !ok {
+					return
+				}
+
+				if answers.FavFood == "" {
+					answers.FavFood = m.Content
+					s.ChannelMessageSend(m.ChannelID, "Great! What's your favorite game now?")
+
+					responses[m.ChannelID] = answers
+					return
+				} else {
+					answers.FavGame = m.Content
+					embed := answers.ToMessageEmbed()
+					s.ChannelMessageSendEmbed(answers.OriginChannelId, &embed)
+
+					delete(responses, m.ChannelID)
+				}
+			}
+
+			// server logic
 			args := strings.Split(m.Content, " ")
 
 			if args[0] != prefix {
@@ -50,6 +120,10 @@ func CreateHandler(s *discordgo.Session) {
 				if err != nil {
 					log.Fatal(err)
 				}
+			}
+
+			if args[1] == "prompt" {
+				UserPromptHandler(s, m)
 			}
 		})
 }
