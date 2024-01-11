@@ -124,5 +124,10 @@ func CreateHandler(s *discordgo.Session) {
 					log.Fatal(err)
 				}
 			}
+
+			if args[1] == "mudkip" {
+				u := "https://youtu.be/3DkqMjfqqPc?t=79"
+				SendVideo(s, m, u)
+			}
 		})
 }

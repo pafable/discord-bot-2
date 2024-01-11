@@ -106,3 +106,23 @@ func RpgHandler(s *discordgo.Session, m *discordgo.MessageCreate) error {
 
 	return nil
 }
+
+func SendVideo(s *discordgo.Session, m *discordgo.MessageCreate, url string) {
+	video := discordgo.MessageEmbedVideo{
+		URL:    url,
+		Width:  10,
+		Height: 10,
+	}
+
+	videoMsg := discordgo.MessageEmbed{
+		Title: "video message",
+		URL:   url,
+		Video: &video,
+	}
+
+	_, err := s.ChannelMessageSendEmbed(m.ChannelID, &videoMsg)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+}
