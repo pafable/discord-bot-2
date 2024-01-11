@@ -117,6 +117,7 @@ func SendVideo(s *discordgo.Session, m *discordgo.MessageCreate, url string) {
 	videoMsg := discordgo.MessageEmbed{
 		Title: "video message",
 		URL:   url,
+		Color: 0x63dcf8,
 		Video: &video,
 	}
 
