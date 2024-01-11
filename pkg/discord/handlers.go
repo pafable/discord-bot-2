@@ -1,13 +1,14 @@
 package discord
 
 import (
+	"discord-bot-2/pkg/rpg"
 	"fmt"
 	"github.com/bwmarrin/discordgo"
 	"log"
 	"math/rand"
 )
 
-var responses map[string]Answers = map[string]Answers{}
+var responses = map[string]Answers{}
 
 type Answers struct {
 	OriginChannelId string
@@ -60,13 +61,15 @@ func UserPromptHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 	}
 }
 
-func HelloWorldHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
+func HelloWorldHandler(s *discordgo.Session, m *discordgo.MessageCreate) error {
 	log.Println("sending \"world\" message to server")
 	_, err := s.ChannelMessageSend(m.ChannelID, "world!")
 
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
+
+	return nil
 }
 
 func RollDiceHandler(s *discordgo.Session, m *discordgo.MessageCreate, numSides int) error {
@@ -78,6 +81,27 @@ func RollDiceHandler(s *discordgo.Session, m *discordgo.MessageCreate, numSides 
 
 	if err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func RpgHandler(s *discordgo.Session, m *discordgo.MessageCreate) error {
+	channel, err := s.UserChannelCreate(m.Author.ID)
+
+	if err != nil {
+		return err
+	}
+
+	if _, ok := rpg.Responses[channel.ID]; !ok {
+		rpg.Responses[channel.ID] = rpg.Answers{
+			OriginChannelId: m.ChannelID,
+			CharacterName:   "",
+			CharacterClass:  "",
+			AdventureChoice: "",
+		}
+		s.ChannelMessageSend(channel.ID, "Let's begin your RPG character!")
+		s.ChannelMessageSend(channel.ID, "Enter your character's name:")
 	}
 
 	return nil

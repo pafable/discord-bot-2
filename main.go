@@ -1,7 +1,7 @@
 package main
 
 import (
-	"discord-bot-2/cmd/discord"
+	"discord-bot-2/pkg/discord"
 	"github.com/bwmarrin/discordgo"
 	"log"
 	"os"
